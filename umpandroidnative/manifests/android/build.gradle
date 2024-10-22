@@ -1,0 +1,11 @@
+repositories {
+  mavenCentral()
+}
+
+dependencies {
+  //https://developers.google.com/admob/android/privacy
+  implementation("com.google.android.ump:user-messaging-platform:3.0.0")
+  implementation "androidx.lifecycle:lifecycle-common:2.3.1"
+  implementation "androidx.lifecycle:lifecycle-process:2.3.1"
+  annotationProcessor "androidx.lifecycle:lifecycle-compiler:2.3.1"
+}

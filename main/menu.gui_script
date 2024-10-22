@@ -1,0 +1,49 @@
+function init(self)
+    msg.post(".", "acquire_input_focus")
+end
+
+local function set_text(text)
+    gui.set_text(gui.get_node("text1"), "Android says: \n" .. text)
+end
+
+function on_input(self, action_id, action)
+    if action_id == hash("touch") and umpandroidnative ~= nil then
+        if gui.pick_node(gui.get_node("bn_vibrate"), action.x, action.y) then
+            umpandroidnative.vibrate(1000)
+            set_text("Vibrate!")
+
+        elseif gui.pick_node(gui.get_node("bn_resource"), action.x, action.y) then
+            local res = umpandroidnative.getraw()
+            set_text(tostring(res))
+
+        elseif gui.pick_node(gui.get_node("bn_jar"), action.x, action.y) then
+            set_text(umpandroidnative.dostuff_jar())
+
+        elseif gui.pick_node(gui.get_node("bn_java"), action.x, action.y) then
+            -- Implementing the UMP flow
+            -- Step 1: Request Consent Info Update
+            set_text("Requesting Consent Info...")
+            local test_device = true -- Set to false for production
+            local test_device_id = "YOUR_TEST_DEVICE_HASH_ID" -- Replace with actual test device ID
+            umpandroidnative.request_consent_info_update(test_device, test_device_id)
+
+            -- Step 2: After consent info update, check if privacy options are required
+            if umpandroidnative.is_privacy_options_required() then
+                set_text("Showing Privacy Options Form...")
+                umpandroidnative.show_privacy_options_form()
+            else
+                if umpandroidnative.can_request_ads() then
+                    set_text("Ads can be requested now.")
+                else
+                    set_text("Ads cannot be requested yet.")
+                end
+            end
+
+        elseif gui.pick_node(gui.get_node("bn_lib"), action.x, action.y) then
+            local a = 10.0
+            local b = 4.2
+            local s = string.format("%f * %f == %f", a, b, umpandroidnative.multiply(a, b))
+            set_text(s)
+        end
+    end
+end

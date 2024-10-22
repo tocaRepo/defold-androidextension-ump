@@ -1,0 +1,304 @@
+animations {
+  id: "anim"
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame003.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame004.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame005.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame006.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame007.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame008.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame009.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame010.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame011.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame012.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame013.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame014.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame015.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame016.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame017.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame018.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame019.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame020.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame021.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame022.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame023.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame024.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame025.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame026.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame027.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame028.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame029.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame030.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame031.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame032.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame033.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame034.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame035.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame036.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame037.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame038.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame039.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame040.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame041.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame042.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame043.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame044.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame045.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame046.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame047.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame048.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame049.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame050.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame051.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame052.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame053.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame054.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame055.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame056.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame057.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame058.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame059.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame060.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame061.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame062.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame063.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame064.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame065.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame066.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame067.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame068.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame069.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame070.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame071.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame072.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame073.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame074.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame075.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame076.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame077.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame078.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame079.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame080.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame081.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame082.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame083.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame084.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame085.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame086.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame087.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame088.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame089.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame090.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame091.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame092.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame093.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame094.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame095.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame096.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame097.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame098.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame099.png"
+  }
+  images {
+    image: "/main/assets/images/explosion01/explosion01-frame100.png"
+  }
+  playback: PLAYBACK_ONCE_FORWARD
+  fps: 40
+  flip_horizontal: 0
+  flip_vertical: 0
+}
+margin: 0
+extrude_borders: 0
+inner_padding: 0
