@@ -20,35 +20,6 @@ public class NativeExample {
     private static ConsentInformation consentInformation;
     private static boolean isMobileAdsInitializeCalled = false;
 
-    // Vibrate method from original code
-    public static final void vibratePhone(Context context, int vibrateMilliSeconds) {
-        Vibrator vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
-        vibrator.vibrate(vibrateMilliSeconds);
-    }
-
-    // Simple message method from original code
-    public static String DoStuff() {
-        return "Message From Java!";
-    }
-
-    // Method to read raw resource (example from original code)
-    public static String GetRaw(Context context) {
-        try {
-            InputStream inputStream = context.getResources().openRawResource(R.raw.test);
-            InputStreamReader inputreader = new InputStreamReader(inputStream);
-            BufferedReader buffreader = new BufferedReader(inputreader);
-            StringBuilder text = new StringBuilder();
-            String line;
-            while ((line = buffreader.readLine()) != null) {
-                text.append(line);
-                text.append('\n');
-            }
-            return text.toString();
-        } catch (Exception e) {
-            return "io exception: " + e.getMessage();
-        }
-    }
-
     // Request consent info update
     public static void requestConsentInfoUpdate(Activity activity, boolean testDevice, String testDeviceHashedId) {
         ConsentRequestParameters.Builder paramsBuilder = new ConsentRequestParameters.Builder();
@@ -101,12 +72,16 @@ public class NativeExample {
 
     // Show privacy options form
     public static void showPrivacyOptionsForm(Activity activity) {
-        UserMessagingPlatform.showPrivacyOptionsForm(activity, formDismissedError -> {
-            if (formDismissedError != null) {
-                Log.e(TAG, "Error showing privacy options form: " + formDismissedError.getMessage());
-            } else {
-                Log.d(TAG, "Privacy options form dismissed successfully.");
-            }
+        Log.d(TAG, "showPrivacyOptionsForm...");
+        // Run on the main thread
+        activity.runOnUiThread(() -> {
+            UserMessagingPlatform.showPrivacyOptionsForm(activity, formDismissedError -> {
+                if (formDismissedError != null) {
+                    Log.e(TAG, "Error showing privacy options form: " + formDismissedError.getMessage());
+                } else {
+                    Log.d(TAG, "Privacy options form dismissed successfully.");
+                }
+            });
         });
     }
 
@@ -124,4 +99,14 @@ public class NativeExample {
             consentInformation.reset();
         }
     }
+
+    // Get consent status method
+    public static int getConsentStatus() {
+        if (consentInformation != null) {
+            return consentInformation.getConsentStatus();
+        }
+        return -1; // Return -1 for an unknown status
+    }
+
+ 
 }

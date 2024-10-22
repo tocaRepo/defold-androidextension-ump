@@ -9,7 +9,6 @@
 
 #if defined(DM_PLATFORM_ANDROID)
 
-#include "testlib.h" // Multiply
 
 static JNIEnv* Attach()
 {
@@ -156,6 +155,23 @@ static int ResetConsentInformation(lua_State* L)
     return 0;
 }
 
+// Lua function to get consent status
+static int GetConsentStatus(lua_State* L) {
+    DM_LUA_STACK_CHECK(L, 1);
+    AttachScope attachscope;
+    JNIEnv* env = attachscope.m_Env;
+
+    jclass cls = GetClass(env, "com.defold.umpandroidnativeext.NativeExample");
+    jmethodID method = env->GetStaticMethodID(cls, "getConsentStatus", "()I");
+
+    jint consentStatus = env->CallStaticIntMethod(cls, method);
+    lua_pushinteger(L, consentStatus);
+
+    return 1;
+}
+
+
+
 // Functions exposed to Lua
 static const luaL_reg Module_methods[] =
 {
@@ -164,6 +180,7 @@ static const luaL_reg Module_methods[] =
     {"is_privacy_options_required", IsPrivacyOptionsRequired},
     {"can_request_ads", CanRequestAds},
     {"initialize_mobile_ads_sdk", InitializeMobileAdsSdk},
+    {"get_consent_status", GetConsentStatus},  // <-- New function
     {"reset_consent_information", ResetConsentInformation},
     {0, 0}
 };
