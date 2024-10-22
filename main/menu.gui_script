@@ -1,6 +1,6 @@
 function init(self)
     msg.post(".", "acquire_input_focus")
-    self.one_click=true
+
 end
 
 local function set_text(text)
@@ -15,7 +15,6 @@ end
 
 function on_input(self, action_id, action)
     if action.pressed and  action_id == hash("touch") and umpandroidnative ~= nil then
-        self.one_click=false
         if gui.pick_node(gui.get_node("bn_java"), action.x, action.y) then
             -- Implementing the UMP flow
             -- Step 1: Request Consent Info Update
@@ -40,32 +39,21 @@ function on_input(self, action_id, action)
                     set_text("Ads cannot be requested yet.")
             end
 
-                local consent_status = umpandroidnative.get_consent_status()
+            local consent_status = umpandroidnative.get_consent_status()
 
-                if consent_status == 0 then
-                    set_text("Consent status unknown. Consent info update required.")
-                elseif consent_status == 1 then
-                    set_text("Consent not required. Ads can be shown.")
-                elseif consent_status == 2 then
-                    set_text("Consent required but not yet obtained.")
-                elseif consent_status == 3 then
-                    set_text("User consent obtained. Ads can be shown.")
-                else
-                    set_text("Invalid consent status.")
-                end
+            if consent_status == 0 then
+                 set_text("Consent status unknown. Consent info update required.")
+            elseif consent_status == 1 then
+                 set_text("Consent not required. Ads can be shown.")
+            elseif consent_status == 2 then
+                 set_text("Consent required but not yet obtained.")
+            elseif consent_status == 3 then
+                 set_text("User consent obtained. Ads can be shown.")
+            else
+                 set_text("Invalid consent status.")
+            end
 
-                local consent_type = umpandroidnative.get_consent_type()
-
-                if consent_type == "personalized" then
-                    set_text_consent("User consented to personalized ads.")
-                elseif consent_type == "non_personalized" then
-                    set_text_consent("User consented to non-personalized ads.")
-                elseif consent_type == "neither" then
-                    set_text_consent("User rejected ads.")
-                else
-                    set_text_consent("No consent obtained or unknown.")
-                end
-        
+           
 
         elseif gui.pick_node(gui.get_node("bn_permission"), action.x, action.y) then
             -- Button to trigger the "Edit Permissions" form
@@ -73,6 +61,6 @@ function on_input(self, action_id, action)
             umpandroidnative.reset_consent_information() -- Shows the privacy options form
             print("show_privacy_options_form done")
         end
-        self.one_click=true
+        
     end
 end

@@ -62,7 +62,7 @@ static int RequestConsentInfoUpdate(lua_State* L)
     AttachScope attachscope;
     JNIEnv* env = attachscope.m_Env;
 
-    jclass cls = GetClass(env, "com.defold.umpandroidnativeext.NativeExample");
+    jclass cls = GetClass(env, "com.defold.umpandroidnativeext.UMPExtension");
     jmethodID method = env->GetStaticMethodID(cls, "requestConsentInfoUpdate", "(Landroid/app/Activity;ZLjava/lang/String;)V");
 
     jobject activity = dmGraphics::GetNativeAndroidActivity();
@@ -83,7 +83,7 @@ static int ShowPrivacyOptionsForm(lua_State* L)
     AttachScope attachscope;
     JNIEnv* env = attachscope.m_Env;
 
-    jclass cls = GetClass(env, "com.defold.umpandroidnativeext.NativeExample");
+    jclass cls = GetClass(env, "com.defold.umpandroidnativeext.UMPExtension");
     jmethodID method = env->GetStaticMethodID(cls, "showPrivacyOptionsForm", "(Landroid/app/Activity;)V");
 
     jobject activity = dmGraphics::GetNativeAndroidActivity();
@@ -99,7 +99,7 @@ static int IsPrivacyOptionsRequired(lua_State* L)
     AttachScope attachscope;
     JNIEnv* env = attachscope.m_Env;
 
-    jclass cls = GetClass(env, "com.defold.umpandroidnativeext.NativeExample");
+    jclass cls = GetClass(env, "com.defold.umpandroidnativeext.UMPExtension");
     jmethodID method = env->GetStaticMethodID(cls, "isPrivacyOptionsRequired", "()Z");
 
     jboolean isRequired = env->CallStaticBooleanMethod(cls, method);
@@ -115,7 +115,7 @@ static int CanRequestAds(lua_State* L)
     AttachScope attachscope;
     JNIEnv* env = attachscope.m_Env;
 
-    jclass cls = GetClass(env, "com.defold.umpandroidnativeext.NativeExample");
+    jclass cls = GetClass(env, "com.defold.umpandroidnativeext.UMPExtension");
     jmethodID method = env->GetStaticMethodID(cls, "canRequestAds", "()Z");
 
     jboolean canRequestAds = env->CallStaticBooleanMethod(cls, method);
@@ -131,7 +131,7 @@ static int InitializeMobileAdsSdk(lua_State* L)
     AttachScope attachscope;
     JNIEnv* env = attachscope.m_Env;
 
-    jclass cls = GetClass(env, "com.defold.umpandroidnativeext.NativeExample");
+    jclass cls = GetClass(env, "com.defold.umpandroidnativeext.UMPExtension");
     jmethodID method = env->GetStaticMethodID(cls, "initializeMobileAdsSdk", "(Landroid/content/Context;)V");
 
     jobject context = dmGraphics::GetNativeAndroidActivity();
@@ -147,7 +147,7 @@ static int ResetConsentInformation(lua_State* L)
     AttachScope attachscope;
     JNIEnv* env = attachscope.m_Env;
 
-    jclass cls = GetClass(env, "com.defold.umpandroidnativeext.NativeExample");
+    jclass cls = GetClass(env, "com.defold.umpandroidnativeext.UMPExtension");
     jmethodID method = env->GetStaticMethodID(cls, "resetConsentInformation", "()V");
 
     env->CallStaticVoidMethod(cls, method);
@@ -161,7 +161,7 @@ static int GetConsentStatus(lua_State* L) {
     AttachScope attachscope;
     JNIEnv* env = attachscope.m_Env;
 
-    jclass cls = GetClass(env, "com.defold.umpandroidnativeext.NativeExample");
+    jclass cls = GetClass(env, "com.defold.umpandroidnativeext.UMPExtension");
     jmethodID method = env->GetStaticMethodID(cls, "getConsentStatus", "()I");
 
     jint consentStatus = env->CallStaticIntMethod(cls, method);

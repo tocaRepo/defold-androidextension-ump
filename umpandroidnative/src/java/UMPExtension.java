@@ -14,9 +14,9 @@ import com.google.android.ump.ConsentInformation;
 import com.google.android.ump.ConsentRequestParameters;
 import com.google.android.ump.ConsentInformation.PrivacyOptionsRequirementStatus;
 import com.google.android.ump.UserMessagingPlatform;
-public class NativeExample {
+public class UMPExtension {
 
-    private static final String TAG = "NativeExample";
+    private static final String TAG = "UMPExtension";
     private static ConsentInformation consentInformation;
     private static boolean isMobileAdsInitializeCalled = false;
 
@@ -72,7 +72,6 @@ public class NativeExample {
 
     // Show privacy options form
     public static void showPrivacyOptionsForm(Activity activity) {
-        Log.d(TAG, "showPrivacyOptionsForm...");
         // Run on the main thread
         activity.runOnUiThread(() -> {
             UserMessagingPlatform.showPrivacyOptionsForm(activity, formDismissedError -> {
