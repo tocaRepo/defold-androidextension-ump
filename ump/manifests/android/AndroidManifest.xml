@@ -5,13 +5,13 @@
         <!-- For extension-admob -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="{{ump.app_id_android}}"/>
+            android:value="{{ump.app_id_android}}" tools:node="remove"/>
         <meta-data
             android:name="com.google.android.gms.ads.flag.OPTIMIZE_INITIALIZATION"
-            android:value="true"/>
+            android:value="true" tools:node="remove"/>
         <meta-data
             android:name="com.google.android.gms.ads.flag.OPTIMIZE_AD_LOADING"
-            android:value="true"/>
+            android:value="true" tools:node="remove"/>
 
     </application>
 </manifest>
