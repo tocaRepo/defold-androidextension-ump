@@ -1,5 +1,5 @@
 [project]
-title = UMPumpandroidnativeext
+title = UMPumpext
 version = 0.1
 
 [bootstrap]
@@ -21,13 +21,13 @@ scale = 0.02
 shared_state = 1
 
 [ios]
-bundle_identifier = com.defold.umpandroidnativeext
+bundle_identifier = com.defold.umpext
 
 [osx]
-bundle_identifier = com.defold.umpandroidnativeext
+bundle_identifier = com.defold.umpext
 
 [android]
-package = com.defold.umpandroidnativeext
+package = com.defold.umpext
 manifest = /builtins/manifests/android/AndroidManifest.xml
 minimum_sdk_version = 21
 
@@ -39,5 +39,5 @@ default_texture_mag_filter = linear
 app_id_android = ca-app-pub-3940256099942544~1458002511
 
 [library]
-include_dirs = umpandroidnative
+include_dirs = ump
 

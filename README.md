@@ -30,7 +30,7 @@ Usage:
 
 
 ```
-umpandroidnative.request_consent_info_update(testDevice, testDeviceHashedId)
+ump.request_consent_info_update(testDevice, testDeviceHashedId)
 
 ```
 
@@ -46,19 +46,19 @@ local function update_consent()
     local test_device = true
     local test_device_id = "YOUR_TEST_DEVICE_HASH_ID"
     
-    umpandroidnative.request_consent_info_update(test_device, test_device_id)
+    ump.request_consent_info_update(test_device, test_device_id)
 
-    if umpandroidnative.is_privacy_options_required() then
-        umpandroidnative.show_privacy_options_form()
+    if ump.is_privacy_options_required() then
+        ump.show_privacy_options_form()
     end
     
-    if umpandroidnative.can_request_ads() then
+    if ump.can_request_ads() then
         print("Ads can be requested now.")
     else
         print("Ads cannot be requested yet.")
     end
 
-    local consent_status = umpandroidnative.get_consent_status()
+    local consent_status = ump.get_consent_status()
     print("Consent status: " .. consent_status)
 end
 

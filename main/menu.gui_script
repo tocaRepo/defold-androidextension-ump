@@ -14,7 +14,7 @@ local function set_text_consent(text)
 end
 
 function on_input(self, action_id, action)
-    if action.pressed and  action_id == hash("touch") and umpandroidnative ~= nil then
+    if action.pressed and  action_id == hash("touch") and ump ~= nil then
         if gui.pick_node(gui.get_node("bn_java"), action.x, action.y) then
             -- Implementing the UMP flow
             -- Step 1: Request Consent Info Update
@@ -23,23 +23,23 @@ function on_input(self, action_id, action)
             local test_device_id = "YOUR_TEST_DEVICE_HASH_ID" -- Replace with actual test device ID
 
             print("Test device: " .. tostring(test_device) .. ", Test device ID: " .. test_device_id) -- Log device info
-            umpandroidnative.request_consent_info_update(test_device, test_device_id)
+            ump.request_consent_info_update(test_device, test_device_id)
 
            
             -- Step 2: After consent info update, check if privacy options are required
-            -- if umpandroidnative.is_privacy_options_required() then
+            -- if ump.is_privacy_options_required() then
             --     print("PRIVACY OPTIONS INIT")
             --     set_text("Privacy options are required, showing form...")
-            --     umpandroidnative.show_privacy_options_form()
+            --     ump.show_privacy_options_form()
             --     print("PRIVACY OPTIONS CALLED")
             -- end
-            if umpandroidnative.can_request_ads() then
+            if ump.can_request_ads() then
                     set_text("Ads can be requested now.")
             else
                     set_text("Ads cannot be requested yet.")
             end
 
-            local consent_status = umpandroidnative.get_consent_status()
+            local consent_status = ump.get_consent_status()
 
             if consent_status == 0 then
                  set_text("Consent status unknown. Consent info update required.")
@@ -58,7 +58,7 @@ function on_input(self, action_id, action)
         elseif gui.pick_node(gui.get_node("bn_permission"), action.x, action.y) then
             -- Button to trigger the "Edit Permissions" form
             set_text("Reset consent...")
-            umpandroidnative.reset_consent_information() -- Shows the privacy options form
+            ump.reset_consent_information() -- Shows the privacy options form
             print("show_privacy_options_form done")
         end
         

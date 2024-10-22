@@ -1,4 +1,4 @@
-package com.defold.umpandroidnativeext;
+package com.defold.umpext;
 
 import android.app.Activity;
 import android.content.Context;
