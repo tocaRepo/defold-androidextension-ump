@@ -1,36 +1,66 @@
-# Android Extension
+# UMP Defold Extension
 
-![50 points](umpandroidnativeext.png)
+This Defold extension allows you to integrate Google's **User Messaging Platform (UMP)** into your Defold game to manage user consent for ads on Android. It helps you request consent information, show the consent form, and check the user's consent status.
 
-This is a small example of how to implement native extensions for Android
+## Warning
 
-It features .java files, .jar files, resources, and native function calls (vibration)
+**Disclaimer:** I am not responsible for any issues, errors, or malfunctions caused by the implementation or the usage of this extension. Use at your own risk. Please ensure you understand the methods and make the necessary modifications to fit your specific project requirements.
 
-## Resources
+## Setup
 
-If you put the resources under `myext/res/android/res` they will be picked up as regular Android resources, and
-as such, they need to conform to the naming [standards of Android resources](https://developer.android.com/guide/topics/resources/providing-resources.html)
+To use this extension, you need to add your **AdMob App ID** in the game project file under the `[ump]` section. Here's an example of how to do it:
 
-## JNI
+```
+[ump]
+app_id_android = ca-app-pub-2112345332~1458002511
+```
 
-To be able to communicate between C++ and Java, you use [JNI Calls](https://en.wikipedia.org/wiki/Java_Native_Interface). Some resources:
+Make sure to replace the example App ID (ca-app-pub-2112345332~1458002511) with your actual AdMob App ID.
 
-* [JNI Tips](https://developer.android.com/training/articles/perf-jni.html)
+## Methods Available
+The UMP extension provides several methods that allow you to manage user consent and ads functionality. Here’s a breakdown of each available method:
 
-* [JNI Hello World](https://developer.android.com/ndk/samples/sample_hellojni.html)
+```
+request_consent_info_update
 
-## Build .jar Files
+```
+This method updates the consent information. You can pass a testDevice flag and a testDeviceHashedId for testing purposes.
 
-We've added a small example of how to build a .jar file from .java source.
-Simply open a command prompt and go to the `java_src` folder, and run the `build.sh` file.
-It requires `javac` which you'll get when you install the [Java SE Development Kit](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html)
+Usage:
 
-Note that we use the flags `-source 1.6 -target 1.6` due to the fact that we support many older Android devices.
 
-## Build .a Files
+```
+umpandroidnative.request_consent_info_update(testDevice, testDeviceHashedId)
 
-To show you how to create a C++ library file on your own, we've added a small example for this.
-Simply open a command prompt and go to the `java_src` folder, and run the `build.sh` file.
-It requires that you have installed an Android SDK and NDK.
+```
 
-    NOTE: You may have to alter your "lib_src/build.sh" script with the appropriate paths to your local android tools
+Note:
+More methods are available, i didn't have the time to finish writing up this readme, sorry.
+check the codebase or the example usage below.
+
+
+## Example usage
+
+```
+local function update_consent()
+    local test_device = true
+    local test_device_id = "YOUR_TEST_DEVICE_HASH_ID"
+    
+    umpandroidnative.request_consent_info_update(test_device, test_device_id)
+
+    if umpandroidnative.is_privacy_options_required() then
+        umpandroidnative.show_privacy_options_form()
+    end
+    
+    if umpandroidnative.can_request_ads() then
+        print("Ads can be requested now.")
+    else
+        print("Ads cannot be requested yet.")
+    end
+
+    local consent_status = umpandroidnative.get_consent_status()
+    print("Consent status: " .. consent_status)
+end
+
+```
+This example initializes consent info update, checks if privacy options are required, and retrieves the consent status. You can then use this information to manage your ads display logic.
