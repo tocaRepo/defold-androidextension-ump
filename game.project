@@ -35,6 +35,9 @@ minimum_sdk_version = 21
 default_texture_min_filter = linear
 default_texture_mag_filter = linear
 
-
 [ump]
 app_id_android = ca-app-pub-3940256099942544~1458002511
+
+[library]
+include_dirs = umpandroidnative
+
