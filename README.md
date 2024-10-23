@@ -8,14 +8,13 @@ This Defold extension allows you to integrate Google's **User Messaging Platform
 
 ## Setup
 
-To use this extension, you need to add your **AdMob App ID** in the game project file under the `[ump]` section. Here's an example of how to do it:
+To use this extension, you need to add the defold admob extensions
+https://github.com/defold/extension-admob/tree/master
 
-```
-[ump]
-app_id_android = ca-app-pub-2112345332~1458002511
-```
+As well as UMP as it's relying on the admob id provided by the admob extension.
 
-Make sure to replace the example App ID (ca-app-pub-2112345332~1458002511) with your actual AdMob App ID.
+Once you have the admob extension installed, just add my latest tag as a dependencies in defold and fetch the libraries.
+
 
 ## Methods Available
 The UMP extension provides several methods that allow you to manage user consent and ads functionality. Here’s a breakdown of each available method:
