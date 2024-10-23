@@ -7,7 +7,7 @@
         <!-- if extension-admob is not loaded, uncomment this bit to use UMP on its own 
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="{{ump.app_id_android}}" tools:node="remove"/>
+            android:value="" tools:node="remove"/>
         <meta-data
             android:name="com.google.android.gms.ads.flag.OPTIMIZE_INITIALIZATION"
             android:value="true" tools:node="remove"/>
