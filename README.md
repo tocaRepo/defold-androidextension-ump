@@ -15,6 +15,8 @@ As well as UMP as it's relying on the admob id provided by the admob extension.
 
 Once you have the admob extension installed, just add my latest tag as a dependencies in defold and fetch the libraries.
 
+UMP 4.0.0 requires Android API level 23 or higher, so your Defold project's Android minimum SDK version must be set to 23+.
+
 
 ## Methods Available
 The UMP extension provides several methods that allow you to manage user consent and ads functionality. Here’s a breakdown of each available method:

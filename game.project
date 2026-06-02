@@ -29,7 +29,7 @@ bundle_identifier = com.defold.umpext
 [android]
 package = com.defold.umpext
 manifest = /builtins/manifests/android/AndroidManifest.xml
-minimum_sdk_version = 21
+minimum_sdk_version = 23
 
 [graphics]
 default_texture_min_filter = linear

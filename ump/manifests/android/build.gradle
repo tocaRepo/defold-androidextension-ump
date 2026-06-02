@@ -1,10 +1,11 @@
 repositories {
+  google()
   mavenCentral()
 }
 
 dependencies {
   //https://developers.google.com/admob/android/privacy
-  implementation("com.google.android.ump:user-messaging-platform:3.2.0")
+  implementation("com.google.android.ump:user-messaging-platform:4.0.0")
  // Core AndroidX libraries
   implementation "androidx.core:core:1.15.0"
   implementation "androidx.lifecycle:lifecycle-common:2.8.6"
