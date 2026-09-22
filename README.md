@@ -17,6 +17,12 @@ Once you have the admob extension installed, just add my latest tag as a depende
 
 UMP 4.0.0 requires Android API level 23 or higher, so your Defold project's Android minimum SDK version must be set to 23+.
 
+On Defold 1.13.2 or newer, enable R8 by selecting
+`/builtins/manifests/android/dmengine.keep` in **Android → R8 Keep Rules**
+in `game.project`. The extension includes `ump/manifests/android/ump.keep`
+to preserve its Java bridge classes and methods used through JNI while
+allowing R8 to optimize their code.
+
 
 ## Methods Available
 The UMP extension provides several methods that allow you to manage user consent and ads functionality. Here’s a breakdown of each available method:
