@@ -171,6 +171,16 @@ static int GetConsentStatus(lua_State* L) {
 }
 
 
+static int GetRequestState(lua_State* L)
+{
+    DM_LUA_STACK_CHECK(L, 1);
+    AttachScope attachscope;
+    JNIEnv* env = attachscope.m_Env;
+    jclass cls = GetClass(env, "com.defold.umpext.UMPExtension");
+    jmethodID method = env->GetStaticMethodID(cls, "getRequestState", "()I");
+    lua_pushinteger(L, env->CallStaticIntMethod(cls, method));
+    return 1;
+}
 
 // Functions exposed to Lua
 static const luaL_reg Module_methods[] =
@@ -181,6 +191,7 @@ static const luaL_reg Module_methods[] =
     {"can_request_ads", CanRequestAds},
     {"initialize_mobile_ads_sdk", InitializeMobileAdsSdk},
     {"get_consent_status", GetConsentStatus},  // <-- New function
+    {"get_request_state", GetRequestState},
     {"reset_consent_information", ResetConsentInformation},
     {0, 0}
 };

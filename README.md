@@ -41,6 +41,11 @@ ump.request_consent_info_update(testDevice, testDeviceHashedId)
 
 ```
 
+The request is asynchronous. Poll `ump.get_request_state()` until it returns `1`
+(completed) or `2` (failed). It returns `0` while the consent information
+update is running and `3` while a required form is loading or showing.
+Check `ump.can_request_ads()` only after the request reaches state `1`.
+
 Note:
 More methods are available, i didn't have the time to finish writing up this readme, sorry.
 check the codebase or the example usage below.
@@ -54,19 +59,18 @@ local function update_consent()
     local test_device_id = "YOUR_TEST_DEVICE_HASH_ID"
     
     ump.request_consent_info_update(test_device, test_device_id)
-
-    if ump.is_privacy_options_required() then
-        ump.show_privacy_options_form()
-    end
-    
-    if ump.can_request_ads() then
-        print("Ads can be requested now.")
-    else
-        print("Ads cannot be requested yet.")
-    end
-
-    local consent_status = ump.get_consent_status()
-    print("Consent status: " .. consent_status)
+    timer.delay(0.1, true, function(_, handle)
+        local state = ump.get_request_state()
+        if state == 1 or state == 2 then
+            timer.cancel(handle)
+            if state == 1 and ump.can_request_ads() then
+                print("Ads can be requested now.")
+            else
+                print("Ads cannot be requested.")
+            end
+            print("Consent status: " .. ump.get_consent_status())
+        end
+    end)
 end
 
 ```

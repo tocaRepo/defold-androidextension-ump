@@ -14,11 +14,14 @@ public class UMPExtension {
 
     private static final String TAG = "UMPExtension";
     private static ConsentInformation consentInformation;
+    // 0 = updating, 1 = update and required form completed, 2 = failed, 3 = form pending.
+    private static volatile int requestState = 0;
 
     /**
      * Request consent info update from UMP.
      */
     public static void requestConsentInfoUpdate(Activity activity, boolean testDevice, String testDeviceHashedId) {
+        requestState = 0;
         ConsentRequestParameters.Builder paramsBuilder = new ConsentRequestParameters.Builder();
 
         if (testDevice) {
@@ -42,6 +45,7 @@ public class UMPExtension {
                     public void onConsentInfoUpdateSuccess() {
                         Log.d(TAG, "Consent info update successful.");
                         Log.d(TAG, "Consent status: " + consentInformation.getConsentStatus());
+                        requestState = 3;
                         loadAndShowConsentFormIfRequired(activity);
                     }
                 },
@@ -49,6 +53,7 @@ public class UMPExtension {
                     @Override
                     public void onConsentInfoUpdateFailure(FormError formError) {
                         Log.e(TAG, "Consent info update failed: " + formError.getMessage());
+                        requestState = 2;
                     }
                 }
         );
@@ -65,12 +70,18 @@ public class UMPExtension {
                     formError -> {
                         if (formError != null) {
                             Log.e(TAG, "Consent form load error: " + formError.getMessage());
+                            requestState = 2;
                         } else {
-                            Log.d(TAG, "Consent form successfully presented.");
+                            Log.d(TAG, "Consent form request completed.");
+                            requestState = 1;
                         }
                     }
             );
         });
+    }
+
+    public static int getRequestState() {
+        return requestState;
     }
 
     /**
