@@ -1,6 +1,8 @@
 package com.defold.umpext;
 
 import android.app.Activity;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 import com.google.android.ump.ConsentDebugSettings;
@@ -13,12 +15,36 @@ import com.google.android.ump.UserMessagingPlatform;
 public class UMPExtension {
 
     private static final String TAG = "UMPExtension";
+    private static final int REQUEST_CONSENT = 1;
+    private static final int PRIVACY_OPTIONS = 2;
+    private static native void onNativeCompletion(int operation, int requestId, boolean success);
+    // Keep these values in sync with the Lua constants registered in extension.cpp.
+    private static final int REQUEST_STATE_UPDATING = 0;
+    private static final int REQUEST_STATE_COMPLETE = 1;
+    private static final int REQUEST_STATE_FAILED = 2;
+    private static final int REQUEST_STATE_FORM_PENDING = 3;
+    private static final int PRIVACY_OPTIONS_STATE_NOT_SHOWN = 0;
+    private static final int PRIVACY_OPTIONS_STATE_SHOWING = 1;
+    private static final int PRIVACY_OPTIONS_STATE_DISMISSED = 2;
+    private static final int PRIVACY_OPTIONS_STATE_ERROR = 3;
+    private static final int GDPR_APPLIES_UNKNOWN = -1;
+    private static final int GDPR_APPLIES_NO = 0;
+    private static final int GDPR_APPLIES_YES = 1;
+
     private static ConsentInformation consentInformation;
+    private static volatile int requestState = REQUEST_STATE_UPDATING;
+    private static volatile boolean requiredFormOnUpdate = false;
+    private static volatile int privacyOptionsState = PRIVACY_OPTIONS_STATE_NOT_SHOWN;
+    private static volatile int latestRequestId;
+    private static volatile int latestPrivacyId;
 
     /**
      * Request consent info update from UMP.
      */
-    public static void requestConsentInfoUpdate(Activity activity, boolean testDevice, String testDeviceHashedId) {
+    public static void requestConsentInfoUpdate(Activity activity, boolean testDevice, String testDeviceHashedId, int requestId) {
+        latestRequestId = requestId;
+        requestState = REQUEST_STATE_UPDATING;
+        requiredFormOnUpdate = false;
         ConsentRequestParameters.Builder paramsBuilder = new ConsentRequestParameters.Builder();
 
         if (testDevice) {
@@ -40,15 +66,22 @@ public class UMPExtension {
                 new ConsentInformation.OnConsentInfoUpdateSuccessListener() {
                     @Override
                     public void onConsentInfoUpdateSuccess() {
+                        if (requestId != latestRequestId) return;
                         Log.d(TAG, "Consent info update successful.");
                         Log.d(TAG, "Consent status: " + consentInformation.getConsentStatus());
-                        loadAndShowConsentFormIfRequired(activity);
+                        requiredFormOnUpdate = consentInformation.getConsentStatus()
+                                == ConsentInformation.ConsentStatus.REQUIRED;
+                        requestState = REQUEST_STATE_FORM_PENDING;
+                        loadAndShowConsentFormIfRequired(activity, requestId);
                     }
                 },
                 new ConsentInformation.OnConsentInfoUpdateFailureListener() {
                     @Override
                     public void onConsentInfoUpdateFailure(FormError formError) {
+                        if (requestId != latestRequestId) return;
                         Log.e(TAG, "Consent info update failed: " + formError.getMessage());
+                        requestState = REQUEST_STATE_FAILED;
+                        onNativeCompletion(REQUEST_CONSENT, requestId, false);
                     }
                 }
         );
@@ -58,19 +91,52 @@ public class UMPExtension {
      * Load and show the consent form if required.
      * Must run on the main UI thread (UMP 3.1+ requirement).
      */
-    private static void loadAndShowConsentFormIfRequired(Activity activity) {
+    private static void loadAndShowConsentFormIfRequired(Activity activity, int requestId) {
         activity.runOnUiThread(() -> {
+            if (requestId != latestRequestId) return;
             UserMessagingPlatform.loadAndShowConsentFormIfRequired(
                     activity,
                     formError -> {
+                        if (requestId != latestRequestId) return;
                         if (formError != null) {
                             Log.e(TAG, "Consent form load error: " + formError.getMessage());
+                            requestState = REQUEST_STATE_FAILED;
                         } else {
-                            Log.d(TAG, "Consent form successfully presented.");
+                            Log.d(TAG, "Consent form request completed.");
+                            requestState = REQUEST_STATE_COMPLETE;
                         }
+                        onNativeCompletion(REQUEST_CONSENT, requestId, formError == null);
                     }
             );
         });
+    }
+
+    public static int getRequestState() {
+        return requestState;
+    }
+
+    public static boolean wasConsentFormRequired() {
+        return requiredFormOnUpdate;
+    }
+
+    // UMP writes these IAB TCF keys to default preferences after consent resolution.
+    // Missing or unexpected regional data must not be treated as outside the EEA.
+    public static int getGdprApplies(Activity activity) {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(activity.getApplicationContext());
+        Object value = preferences.getAll().get("IABTCF_gdprApplies");
+        if (value instanceof Integer && ((Integer) value == GDPR_APPLIES_NO || (Integer) value == GDPR_APPLIES_YES)) {
+            return (Integer) value;
+        }
+        if ("0".equals(value) || "1".equals(value)) {
+            return Integer.parseInt((String) value);
+        }
+        return GDPR_APPLIES_UNKNOWN;
+    }
+
+    public static String getPurposeConsents(Activity activity) {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(activity.getApplicationContext());
+        Object value = preferences.getAll().get("IABTCF_PurposeConsents");
+        return value instanceof String ? (String) value : null;
     }
 
     /**
@@ -85,23 +151,34 @@ public class UMPExtension {
     /**
      * Show the privacy options form.
      */
-    public static void showPrivacyOptionsForm(Activity activity) {
+    public static void showPrivacyOptionsForm(Activity activity, int requestId) {
+        latestPrivacyId = requestId;
+        privacyOptionsState = PRIVACY_OPTIONS_STATE_SHOWING;
         if (consentInformation == null) {
             consentInformation = UserMessagingPlatform.getConsentInformation(activity);
         }
 
         activity.runOnUiThread(() -> {
+            if (requestId != latestPrivacyId) return;
             UserMessagingPlatform.showPrivacyOptionsForm(
                     activity,
                     formDismissedError -> {
+                        if (requestId != latestPrivacyId) return;
                         if (formDismissedError != null) {
                             Log.e(TAG, "Error showing privacy options form: " + formDismissedError.getMessage());
+                            privacyOptionsState = PRIVACY_OPTIONS_STATE_ERROR;
                         } else {
                             Log.d(TAG, "Privacy options form dismissed successfully.");
+                            privacyOptionsState = PRIVACY_OPTIONS_STATE_DISMISSED;
                         }
+                        onNativeCompletion(PRIVACY_OPTIONS, requestId, formDismissedError == null);
                     }
             );
         });
+    }
+
+    public static int getPrivacyOptionsState() {
+        return privacyOptionsState;
     }
 
     /**

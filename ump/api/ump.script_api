@@ -1,0 +1,194 @@
+- name: ump
+  type: table
+  desc: Google User Messaging Platform consent API for Android. The table is absent on other platforms.
+  members:
+    - name: request_consent_info_update
+      type: function
+      desc: |-
+        Request fresh consent information and show a consent form if required.
+        Call on every launch. The callback runs on the Defold update thread after
+        the update and any required form finish. A successful callback means the
+        flow had no UMP error, not that the user accepted personalized ads.
+      parameters:
+        - name: test_device
+          type: boolean
+          desc: Enable UMP debug mode and force EEA geography for the registered test device.
+        - name: test_device_hashed_id
+          type: string
+          desc: Hashed test device ID. Pass an empty string when test_device is false.
+        - name: callback
+          type: function
+          optional: true
+          desc: Called when the update and any required form finish.
+          parameters:
+            - name: self
+              type: object
+              desc: Calling script instance.
+            - name: success
+              type: boolean
+              desc: False if the consent information update or form failed.
+      examples:
+        - desc: |-
+            ```lua
+            ump.request_consent_info_update(false, "", function(self, success)
+                if success and ump.can_request_ads() then
+                    print("Ads can be requested")
+                end
+            end)
+            ```
+
+    - name: show_privacy_options_form
+      type: function
+      desc: |-
+        Open the UMP privacy-options form in response to user input. Check
+        is_privacy_options_required() first. A successful callback means the form
+        closed without an error, not that the user granted consent.
+      parameters:
+        - name: callback
+          type: function
+          optional: true
+          desc: Called after the privacy-options form is dismissed or fails.
+          parameters:
+            - name: self
+              type: object
+              desc: Calling script instance.
+            - name: success
+              type: boolean
+              desc: False if the form could not be shown or completed.
+      examples:
+        - desc: |-
+            ```lua
+            if ump.is_privacy_options_required() then
+                ump.show_privacy_options_form(function(self, success)
+                    if success then print("Privacy options closed") end
+                end)
+            end
+            ```
+
+    - name: is_privacy_options_required
+      type: function
+      desc: Whether UMP requires a privacy-options entry point. Returns false before consent information is available.
+      returns:
+        - name: required
+          type: boolean
+          desc: True when a privacy-options entry point is required.
+
+    - name: can_request_ads
+      type: function
+      desc: |-
+        UMP ad-request eligibility. Check after the current update callback.
+        Before then, this can reflect consent stored from an earlier session.
+      returns:
+        - name: allowed
+          type: boolean
+          desc: True when UMP allows ad requests.
+
+    - name: get_consent_status
+      type: function
+      desc: |-
+        Google consent status: 0 unknown, 1 not required, 2 required, 3 obtained.
+        Returns -1 before the consent-information object exists. Status 3 does
+        not distinguish personalized from non-personalized advertising.
+      returns:
+        - name: status
+          type: number
+          desc: UMP consent status or -1 if unavailable.
+
+    - name: get_request_state
+      type: function
+      desc: |-
+        Diagnostic state of the latest consent information update and form.
+        Prefer the request callback to polling this value.
+      returns:
+        - name: state
+          type: number
+          desc: One of ump.REQUEST_STATE_UPDATING, ump.REQUEST_STATE_FORM_PENDING, ump.REQUEST_STATE_COMPLETE, or ump.REQUEST_STATE_FAILED.
+
+    - name: was_consent_form_required
+      type: function
+      desc: |-
+        Whether the latest successful information update found a required normal
+        consent form. Resets when a new update starts. May remain true if that
+        form later fails.
+      returns:
+        - name: required
+          type: boolean
+          desc: True if the latest successful update required a form.
+
+    - name: get_privacy_options_state
+      type: function
+      desc: Diagnostic state of the latest privacy-options form.
+      returns:
+        - name: state
+          type: number
+          desc: One of ump.PRIVACY_OPTIONS_STATE_NOT_SHOWN, ump.PRIVACY_OPTIONS_STATE_SHOWING, ump.PRIVACY_OPTIONS_STATE_DISMISSED, or ump.PRIVACY_OPTIONS_STATE_ERROR.
+
+    - name: get_gdpr_applies
+      type: function
+      desc: |-
+        Read IABTCF_gdprApplies from Android default preferences after a
+        successful UMP update. This is a GDPR applicability signal, not a country
+        code or vendor consent.
+      returns:
+        - name: value
+          type: number
+          desc: ump.GDPR_APPLIES_NO, ump.GDPR_APPLIES_YES, or ump.GDPR_APPLIES_UNKNOWN if missing or invalid.
+
+    - name: get_purpose_consents
+      type: function
+      desc: |-
+        Read the raw IABTCF_PurposeConsents bit string from Android default
+        preferences. Call after a successful UMP update or privacy-options
+        callback. The third character represents TCF Purpose 3 consent.
+      returns:
+        - name: value
+          type: string
+          desc: Raw purpose-consent bit string, or nil if unavailable.
+
+    - name: reset_consent_information
+      type: function
+      desc: |-
+        Clear UMP consent information for testing if its object has been created.
+        Start a new request afterward. Diagnostic request/form states are not
+        reset by this call.
+
+    - name: initialize_mobile_ads_sdk
+      type: function
+      desc: |-
+        Legacy, nonfunctional export. Its required Java method is absent from
+        this extension. Do not call it. If using the Defold AdMob extension,
+        call admob.initialize() after the UMP flow instead.
+
+    - name: REQUEST_STATE_UPDATING
+      type: number
+      desc: "0; initial state or consent information update in progress."
+    - name: REQUEST_STATE_COMPLETE
+      type: number
+      desc: "1; update and form step finished without a UMP error."
+    - name: REQUEST_STATE_FAILED
+      type: number
+      desc: "2; information update or form failed."
+    - name: REQUEST_STATE_FORM_PENDING
+      type: number
+      desc: "3; update succeeded and a form step is in progress."
+    - name: PRIVACY_OPTIONS_STATE_NOT_SHOWN
+      type: number
+      desc: "0; initial privacy-options state."
+    - name: PRIVACY_OPTIONS_STATE_SHOWING
+      type: number
+      desc: "1; privacy-options request in progress."
+    - name: PRIVACY_OPTIONS_STATE_DISMISSED
+      type: number
+      desc: "2; privacy-options form closed without a UMP error."
+    - name: PRIVACY_OPTIONS_STATE_ERROR
+      type: number
+      desc: "3; privacy-options form failed."
+    - name: GDPR_APPLIES_UNKNOWN
+      type: number
+      desc: "-1; IAB TCF GDPR applicability value missing or invalid."
+    - name: GDPR_APPLIES_NO
+      type: number
+      desc: "0; IAB TCF value says GDPR does not apply."
+    - name: GDPR_APPLIES_YES
+      type: number
+      desc: "1; IAB TCF value says GDPR applies."
