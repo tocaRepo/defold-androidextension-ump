@@ -134,6 +134,17 @@
           type: number
           desc: ump.GDPR_APPLIES_NO, ump.GDPR_APPLIES_YES, or ump.GDPR_APPLIES_UNKNOWN if missing or invalid.
 
+    - name: get_purpose_consents
+      type: function
+      desc: |-
+        Read the raw IABTCF_PurposeConsents bit string from Android default
+        preferences. Call after a successful UMP update or privacy-options
+        callback. The third character represents TCF Purpose 3 consent.
+      returns:
+        - name: value
+          type: string
+          desc: Raw purpose-consent bit string, or nil if unavailable.
+
     - name: reset_consent_information
       type: function
       desc: |-

@@ -133,6 +133,12 @@ public class UMPExtension {
         return GDPR_APPLIES_UNKNOWN;
     }
 
+    public static String getPurposeConsents(Activity activity) {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(activity.getApplicationContext());
+        Object value = preferences.getAll().get("IABTCF_PurposeConsents");
+        return value instanceof String ? (String) value : null;
+    }
+
     /**
      * Returns true if privacy options entry point should be shown.
      */

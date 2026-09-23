@@ -70,6 +70,7 @@ Both callbacks are optional. If omitted, the state getters remain available for 
 | `ump.was_consent_form_required()` | Returns whether the latest **successful information update** found a required normal consent form. Resets to `false` when a new request starts. It can remain true if the subsequent form fails. |
 | `ump.get_privacy_options_state()` | Returns the state of the latest privacy-options form. See constants below. |
 | `ump.get_gdpr_applies()` | Reads the `IABTCF_gdprApplies` value written to Android default preferences. Returns `GDPR_APPLIES_UNKNOWN` if absent or invalid. Read it after a successful update; it is a GDPR applicability signal, not a country code or vendor consent. |
+| `ump.get_purpose_consents()` | Reads the raw `IABTCF_PurposeConsents` bit string from Android default preferences after a successful update or privacy-options callback. Returns `nil` if unavailable. The third character represents TCF Purpose 3 consent; this value does not establish vendor consent by itself. |
 | `ump.reset_consent_information()` | Clears UMP consent information **for testing** if the consent-information object has been created. Start a new update afterward; the extension's diagnostic state getters are not reset by this call. |
 | `ump.initialize_mobile_ads_sdk()` | **Nonfunctional legacy export.** The native bridge calls a Java method absent from this extension. Do not call it; use `admob.initialize()` after consent if you use the AdMob extension. |
 
