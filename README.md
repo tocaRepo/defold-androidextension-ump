@@ -51,6 +51,11 @@ a user action. `ump.get_privacy_options_state()` returns `0` before the form
 is opened, `1` while it is showing, and `2` after it closes (including an error).
 A new show request resets the state to `1`.
 
+`ump.get_gdpr_applies()` reads the [IAB TCF GDPR applicability value published by UMP](https://developers.google.com/admob/android/privacy/gdpr)
+from Android default preferences. Call it after the request reaches state `1`.
+It returns `0` or `1`, or `-1` if the value is missing or invalid. This is a
+consent-flow signal, not a country code or vendor consent.
+
 Note:
 More methods are available, i didn't have the time to finish writing up this readme, sorry.
 check the codebase or the example usage below.

@@ -193,6 +193,18 @@ static int GetPrivacyOptionsState(lua_State* L)
     return 1;
 }
 
+static int GetGdprApplies(lua_State* L)
+{
+    DM_LUA_STACK_CHECK(L, 1);
+    AttachScope attachscope;
+    JNIEnv* env = attachscope.m_Env;
+    jclass cls = GetClass(env, "com.defold.umpext.UMPExtension");
+    jobject activity = dmGraphics::GetNativeAndroidActivity();
+    jmethodID method = env->GetStaticMethodID(cls, "getGdprApplies", "(Landroid/app/Activity;)I");
+    lua_pushinteger(L, env->CallStaticIntMethod(cls, method, activity));
+    return 1;
+}
+
 // Functions exposed to Lua
 static const luaL_reg Module_methods[] =
 {
@@ -204,6 +216,7 @@ static const luaL_reg Module_methods[] =
     {"get_consent_status", GetConsentStatus},  // <-- New function
     {"get_request_state", GetRequestState},
     {"get_privacy_options_state", GetPrivacyOptionsState},
+    {"get_gdpr_applies", GetGdprApplies},
     {"reset_consent_information", ResetConsentInformation},
     {0, 0}
 };

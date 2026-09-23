@@ -1,6 +1,8 @@
 package com.defold.umpext;
 
 import android.app.Activity;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 import com.google.android.ump.ConsentDebugSettings;
@@ -84,6 +86,20 @@ public class UMPExtension {
 
     public static int getRequestState() {
         return requestState;
+    }
+
+    // UMP writes these IAB TCF keys to default preferences after consent resolution.
+    // Missing or unexpected regional data must not be treated as outside the EEA.
+    public static int getGdprApplies(Activity activity) {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(activity.getApplicationContext());
+        Object value = preferences.getAll().get("IABTCF_gdprApplies");
+        if (value instanceof Integer && ((Integer) value == 0 || (Integer) value == 1)) {
+            return (Integer) value;
+        }
+        if ("0".equals(value) || "1".equals(value)) {
+            return Integer.parseInt((String) value);
+        }
+        return -1;
     }
 
     /**
