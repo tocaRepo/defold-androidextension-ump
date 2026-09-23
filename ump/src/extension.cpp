@@ -9,6 +9,69 @@
 
 #if defined(DM_PLATFORM_ANDROID)
 
+enum Operation { REQUEST_CONSENT = 1, PRIVACY_OPTIONS = 2 };
+
+struct Completion {
+    int m_Operation;
+    int m_Id;
+    bool m_Success;
+};
+
+static dmMutex::HMutex g_Mutex;
+static dmArray<Completion> g_Completions;
+static bool g_AcceptCompletions = false;
+static int g_NextId = 0;
+static int g_RequestId = 0;
+static int g_PrivacyId = 0;
+static dmScript::LuaCallbackInfo* g_RequestCallback = 0;
+static dmScript::LuaCallbackInfo* g_PrivacyCallback = 0;
+
+extern "C" JNIEXPORT void JNICALL Java_com_defold_umpext_UMPExtension_onNativeCompletion(
+        JNIEnv* env, jclass cls, jint operation, jint id, jboolean success)
+{
+    DM_MUTEX_SCOPED_LOCK(g_Mutex);
+    if (!g_AcceptCompletions) return;
+    if (g_Completions.Full()) g_Completions.OffsetCapacity(4);
+    Completion completion = {(int)operation, (int)id, success == JNI_TRUE};
+    g_Completions.Push(completion);
+}
+
+static void InvokeCompletion(dmScript::LuaCallbackInfo* callback, bool success)
+{
+    if (!callback) return;
+    if (dmScript::IsCallbackValid(callback) && dmScript::SetupCallback(callback)) {
+        lua_State* L = dmScript::GetCallbackLuaContext(callback);
+        lua_pushboolean(L, success);
+        dmScript::PCall(L, 2, 0);
+        dmScript::TeardownCallback(callback);
+    }
+    dmScript::DestroyCallback(callback);
+}
+
+static dmExtension::Result UpdateExtension(dmExtension::Params* params)
+{
+    dmArray<Completion> completions;
+    {
+        DM_MUTEX_SCOPED_LOCK(g_Mutex);
+        completions.Swap(g_Completions);
+    }
+    for (uint32_t i = 0; i < completions.Size(); ++i) {
+        const Completion& completion = completions[i];
+        dmScript::LuaCallbackInfo** slot = 0;
+        if (completion.m_Operation == REQUEST_CONSENT && completion.m_Id == g_RequestId) {
+            slot = &g_RequestCallback;
+        } else if (completion.m_Operation == PRIVACY_OPTIONS && completion.m_Id == g_PrivacyId) {
+            slot = &g_PrivacyCallback;
+        }
+        if (slot) {
+            dmScript::LuaCallbackInfo* callback = *slot;
+            *slot = 0;
+            InvokeCompletion(callback, completion.m_Success);
+        }
+    }
+    return dmExtension::RESULT_OK;
+}
+
 // Keep these values in sync with UMPExtension.java.
 enum UmpConstant {
     REQUEST_STATE_UPDATING = 0,
@@ -73,18 +136,21 @@ static jclass GetClass(JNIEnv* env, const char* classname)
 static int RequestConsentInfoUpdate(lua_State* L)
 {
     DM_LUA_STACK_CHECK(L, 0);
+    const char* testDeviceId = luaL_checkstring(L, 2);
+    if (!lua_isnoneornil(L, 3)) luaL_checktype(L, 3, LUA_TFUNCTION);
+    if (g_RequestCallback) dmScript::DestroyCallback(g_RequestCallback);
+    g_RequestCallback = lua_isnoneornil(L, 3) ? 0 : dmScript::CreateCallback(L, 3);
+    g_RequestId = ++g_NextId;
     AttachScope attachscope;
     JNIEnv* env = attachscope.m_Env;
 
     jclass cls = GetClass(env, "com.defold.umpext.UMPExtension");
-    jmethodID method = env->GetStaticMethodID(cls, "requestConsentInfoUpdate", "(Landroid/app/Activity;ZLjava/lang/String;)V");
+    jmethodID method = env->GetStaticMethodID(cls, "requestConsentInfoUpdate", "(Landroid/app/Activity;ZLjava/lang/String;I)V");
 
     jobject activity = dmGraphics::GetNativeAndroidActivity();
     bool testDevice = lua_toboolean(L, 1);
-    const char* testDeviceId = luaL_checkstring(L, 2);
-
     jstring jtestDeviceId = env->NewStringUTF(testDeviceId);
-    env->CallStaticVoidMethod(cls, method, activity, testDevice, jtestDeviceId);
+    env->CallStaticVoidMethod(cls, method, activity, testDevice, jtestDeviceId, g_RequestId);
     env->DeleteLocalRef(jtestDeviceId);
 
     return 0;
@@ -94,14 +160,18 @@ static int RequestConsentInfoUpdate(lua_State* L)
 static int ShowPrivacyOptionsForm(lua_State* L)
 {
     DM_LUA_STACK_CHECK(L, 0);
+    if (!lua_isnoneornil(L, 1)) luaL_checktype(L, 1, LUA_TFUNCTION);
+    if (g_PrivacyCallback) dmScript::DestroyCallback(g_PrivacyCallback);
+    g_PrivacyCallback = lua_isnoneornil(L, 1) ? 0 : dmScript::CreateCallback(L, 1);
+    g_PrivacyId = ++g_NextId;
     AttachScope attachscope;
     JNIEnv* env = attachscope.m_Env;
 
     jclass cls = GetClass(env, "com.defold.umpext.UMPExtension");
-    jmethodID method = env->GetStaticMethodID(cls, "showPrivacyOptionsForm", "(Landroid/app/Activity;)V");
+    jmethodID method = env->GetStaticMethodID(cls, "showPrivacyOptionsForm", "(Landroid/app/Activity;I)V");
 
     jobject activity = dmGraphics::GetNativeAndroidActivity();
-    env->CallStaticVoidMethod(cls, method, activity);
+    env->CallStaticVoidMethod(cls, method, activity, g_PrivacyId);
 
     return 0;
 }
@@ -279,6 +349,11 @@ static dmExtension::Result AppInitializeExtension(dmExtension::AppParams* params
 
 static dmExtension::Result InitializeExtension(dmExtension::Params* params)
 {
+    if (!g_Mutex) g_Mutex = dmMutex::New();
+    {
+        DM_MUTEX_SCOPED_LOCK(g_Mutex);
+        g_AcceptCompletions = true;
+    }
     // Init Lua
     LuaInit(params->m_L);
     printf("Registered %s Extension\n", MODULE_NAME);
@@ -292,6 +367,15 @@ static dmExtension::Result AppFinalizeExtension(dmExtension::AppParams* params)
 
 static dmExtension::Result FinalizeExtension(dmExtension::Params* params)
 {
+    {
+        DM_MUTEX_SCOPED_LOCK(g_Mutex);
+        g_AcceptCompletions = false;
+        g_Completions.SetSize(0);
+    }
+    if (g_RequestCallback) dmScript::DestroyCallback(g_RequestCallback);
+    if (g_PrivacyCallback) dmScript::DestroyCallback(g_PrivacyCallback);
+    g_RequestCallback = 0;
+    g_PrivacyCallback = 0;
     return dmExtension::RESULT_OK;
 }
 
@@ -320,4 +404,8 @@ static dmExtension::Result FinalizeExtension(dmExtension::Params* params)
 
 #endif
 
+#if defined(DM_PLATFORM_ANDROID)
+DM_DECLARE_EXTENSION(EXTENSION_NAME, LIB_NAME, AppInitializeExtension, AppFinalizeExtension, InitializeExtension, UpdateExtension, 0, FinalizeExtension)
+#else
 DM_DECLARE_EXTENSION(EXTENSION_NAME, LIB_NAME, AppInitializeExtension, AppFinalizeExtension, InitializeExtension, 0, 0, FinalizeExtension)
+#endif

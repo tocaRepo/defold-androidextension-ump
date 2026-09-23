@@ -6,13 +6,6 @@ local function set_text_consent(text)
     gui.set_text(gui.get_node("consent"), "UMP says: \n" .. text)
 end
 
-local function stop_timer(self, name)
-    if self[name] then
-        timer.cancel(self[name])
-        self[name] = nil
-    end
-end
-
 local function show_consent_result()
     set_text(ump.can_request_ads() and "Ads can be requested." or "Ads cannot be requested.")
     set_text_consent(ump.is_privacy_options_required()
@@ -20,22 +13,18 @@ local function show_consent_result()
 end
 
 local function request_consent(self)
-    stop_timer(self, "request_timer")
+    if self.request_pending then return end
+    self.request_pending = true
     self.request_complete = false
     set_text("Requesting consent information...")
     set_text_consent("Waiting for UMP...")
     -- Register a real test-device hash and set this to true when testing an EEA form.
-    ump.request_consent_info_update(false, "")
-    self.request_timer = timer.delay(0.1, true, function(_, handle)
-        local state = ump.get_request_state()
-        if state == ump.REQUEST_STATE_COMPLETE then
-            timer.cancel(handle)
-            self.request_timer = nil
+    ump.request_consent_info_update(false, "", function(_, success)
+        self.request_pending = false
+        if success then
             self.request_complete = true
             show_consent_result()
-        elseif state == ump.REQUEST_STATE_FAILED then
-            timer.cancel(handle)
-            self.request_timer = nil
+        else
             set_text("Consent update or form failed.")
             set_text_consent("Ads were not requested.")
         end
@@ -47,17 +36,13 @@ local function show_privacy_options(self)
         set_text_consent("Privacy choices are not available yet.")
         return
     end
-    stop_timer(self, "privacy_timer")
-    ump.show_privacy_options_form()
-    self.privacy_timer = timer.delay(0.1, true, function(_, handle)
-        local state = ump.get_privacy_options_state()
-        if state == ump.PRIVACY_OPTIONS_STATE_DISMISSED then
-            timer.cancel(handle)
-            self.privacy_timer = nil
+    if self.privacy_pending then return end
+    self.privacy_pending = true
+    ump.show_privacy_options_form(function(_, success)
+        self.privacy_pending = false
+        if success then
             show_consent_result()
-        elseif state == ump.PRIVACY_OPTIONS_STATE_ERROR then
-            timer.cancel(handle)
-            self.privacy_timer = nil
+        else
             set_text_consent("Could not show privacy choices.")
         end
     end)
@@ -74,9 +59,4 @@ function on_input(self, action_id, action)
     elseif gui.pick_node(gui.get_node("bn_permission"), action.x, action.y) then
         show_privacy_options(self)
     end
-end
-
-function final(self)
-    stop_timer(self, "request_timer")
-    stop_timer(self, "privacy_timer")
 end
