@@ -15,18 +15,29 @@ import com.google.android.ump.UserMessagingPlatform;
 public class UMPExtension {
 
     private static final String TAG = "UMPExtension";
+    // Keep these values in sync with the Lua constants registered in extension.cpp.
+    private static final int REQUEST_STATE_UPDATING = 0;
+    private static final int REQUEST_STATE_COMPLETE = 1;
+    private static final int REQUEST_STATE_FAILED = 2;
+    private static final int REQUEST_STATE_FORM_PENDING = 3;
+    private static final int PRIVACY_OPTIONS_STATE_NOT_SHOWN = 0;
+    private static final int PRIVACY_OPTIONS_STATE_SHOWING = 1;
+    private static final int PRIVACY_OPTIONS_STATE_DISMISSED = 2;
+    private static final int PRIVACY_OPTIONS_STATE_ERROR = 3;
+    private static final int GDPR_APPLIES_UNKNOWN = -1;
+    private static final int GDPR_APPLIES_NO = 0;
+    private static final int GDPR_APPLIES_YES = 1;
+
     private static ConsentInformation consentInformation;
-    // 0 = updating, 1 = update and required form completed, 2 = failed, 3 = form pending.
-    private static volatile int requestState = 0;
+    private static volatile int requestState = REQUEST_STATE_UPDATING;
     private static volatile boolean requiredFormOnUpdate = false;
-    // 0 = not shown, 1 = showing, 2 = dismissed successfully, 3 = form error.
-    private static volatile int privacyOptionsState = 0;
+    private static volatile int privacyOptionsState = PRIVACY_OPTIONS_STATE_NOT_SHOWN;
 
     /**
      * Request consent info update from UMP.
      */
     public static void requestConsentInfoUpdate(Activity activity, boolean testDevice, String testDeviceHashedId) {
-        requestState = 0;
+        requestState = REQUEST_STATE_UPDATING;
         requiredFormOnUpdate = false;
         ConsentRequestParameters.Builder paramsBuilder = new ConsentRequestParameters.Builder();
 
@@ -53,7 +64,7 @@ public class UMPExtension {
                         Log.d(TAG, "Consent status: " + consentInformation.getConsentStatus());
                         requiredFormOnUpdate = consentInformation.getConsentStatus()
                                 == ConsentInformation.ConsentStatus.REQUIRED;
-                        requestState = 3;
+                        requestState = REQUEST_STATE_FORM_PENDING;
                         loadAndShowConsentFormIfRequired(activity);
                     }
                 },
@@ -61,7 +72,7 @@ public class UMPExtension {
                     @Override
                     public void onConsentInfoUpdateFailure(FormError formError) {
                         Log.e(TAG, "Consent info update failed: " + formError.getMessage());
-                        requestState = 2;
+                        requestState = REQUEST_STATE_FAILED;
                     }
                 }
         );
@@ -78,10 +89,10 @@ public class UMPExtension {
                     formError -> {
                         if (formError != null) {
                             Log.e(TAG, "Consent form load error: " + formError.getMessage());
-                            requestState = 2;
+                            requestState = REQUEST_STATE_FAILED;
                         } else {
                             Log.d(TAG, "Consent form request completed.");
-                            requestState = 1;
+                            requestState = REQUEST_STATE_COMPLETE;
                         }
                     }
             );
@@ -101,13 +112,13 @@ public class UMPExtension {
     public static int getGdprApplies(Activity activity) {
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(activity.getApplicationContext());
         Object value = preferences.getAll().get("IABTCF_gdprApplies");
-        if (value instanceof Integer && ((Integer) value == 0 || (Integer) value == 1)) {
+        if (value instanceof Integer && ((Integer) value == GDPR_APPLIES_NO || (Integer) value == GDPR_APPLIES_YES)) {
             return (Integer) value;
         }
         if ("0".equals(value) || "1".equals(value)) {
             return Integer.parseInt((String) value);
         }
-        return -1;
+        return GDPR_APPLIES_UNKNOWN;
     }
 
     /**
@@ -123,7 +134,7 @@ public class UMPExtension {
      * Show the privacy options form.
      */
     public static void showPrivacyOptionsForm(Activity activity) {
-        privacyOptionsState = 1;
+        privacyOptionsState = PRIVACY_OPTIONS_STATE_SHOWING;
         if (consentInformation == null) {
             consentInformation = UserMessagingPlatform.getConsentInformation(activity);
         }
@@ -134,10 +145,10 @@ public class UMPExtension {
                     formDismissedError -> {
                         if (formDismissedError != null) {
                             Log.e(TAG, "Error showing privacy options form: " + formDismissedError.getMessage());
-                            privacyOptionsState = 3;
+                            privacyOptionsState = PRIVACY_OPTIONS_STATE_ERROR;
                         } else {
                             Log.d(TAG, "Privacy options form dismissed successfully.");
-                            privacyOptionsState = 2;
+                            privacyOptionsState = PRIVACY_OPTIONS_STATE_DISMISSED;
                         }
                     }
             );

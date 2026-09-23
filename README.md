@@ -41,23 +41,28 @@ ump.request_consent_info_update(testDevice, testDeviceHashedId)
 
 ```
 
-The request is asynchronous. Poll `ump.get_request_state()` until it returns `1`
-(completed) or `2` (failed). It returns `0` while the consent information
-update is running and `3` while a required form is loading or showing.
-Check `ump.can_request_ads()` only after the request reaches state `1`.
+The request is asynchronous. Poll `ump.get_request_state()` until it returns
+`ump.REQUEST_STATE_COMPLETE` or `ump.REQUEST_STATE_FAILED`. It returns
+`ump.REQUEST_STATE_UPDATING` while the consent information update is running
+and `ump.REQUEST_STATE_FORM_PENDING` while a required form is loading or showing.
+Check `ump.can_request_ads()` only after the request reaches
+`ump.REQUEST_STATE_COMPLETE`.
 `ump.was_consent_form_required()` reports whether this update required the normal
 consent form. It is false before an update succeeds and resets on each request.
 
 `ump.show_privacy_options_form()` opens the privacy options form when called from
-a user action. `ump.get_privacy_options_state()` returns `0` before the form
-is opened, `1` while it is showing, `2` after successful dismissal, and `3`
-if the form could not be shown or completed.
-A new show request resets the state to `1`.
+a user action. `ump.get_privacy_options_state()` returns
+`ump.PRIVACY_OPTIONS_STATE_NOT_SHOWN` before the form is opened,
+`ump.PRIVACY_OPTIONS_STATE_SHOWING` while it is showing,
+`ump.PRIVACY_OPTIONS_STATE_DISMISSED` after successful dismissal, and
+`ump.PRIVACY_OPTIONS_STATE_ERROR` if the form could not be shown or completed.
+A new show request resets the state to `ump.PRIVACY_OPTIONS_STATE_SHOWING`.
 
 `ump.get_gdpr_applies()` reads the [IAB TCF GDPR applicability value published by UMP](https://developers.google.com/admob/android/privacy/gdpr)
-from Android default preferences. Call it after the request reaches state `1`.
-It returns `0` or `1`, or `-1` if the value is missing or invalid. This is a
-consent-flow signal, not a country code or vendor consent.
+from Android default preferences. Call it after the request reaches
+`ump.REQUEST_STATE_COMPLETE`. It returns `ump.GDPR_APPLIES_NO` or
+`ump.GDPR_APPLIES_YES`, or `ump.GDPR_APPLIES_UNKNOWN` if the value is missing or
+invalid. This is a consent-flow signal, not a country code or vendor consent.
 
 Note:
 More methods are available, i didn't have the time to finish writing up this readme, sorry.
@@ -74,9 +79,9 @@ local function update_consent()
     ump.request_consent_info_update(test_device, test_device_id)
     timer.delay(0.1, true, function(_, handle)
         local state = ump.get_request_state()
-        if state == 1 or state == 2 then
+        if state == ump.REQUEST_STATE_COMPLETE or state == ump.REQUEST_STATE_FAILED then
             timer.cancel(handle)
-            if state == 1 and ump.can_request_ads() then
+            if state == ump.REQUEST_STATE_COMPLETE and ump.can_request_ads() then
                 print("Ads can be requested now.")
             else
                 print("Ads cannot be requested.")
