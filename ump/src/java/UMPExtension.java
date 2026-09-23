@@ -19,7 +19,7 @@ public class UMPExtension {
     // 0 = updating, 1 = update and required form completed, 2 = failed, 3 = form pending.
     private static volatile int requestState = 0;
     private static volatile boolean requiredFormOnUpdate = false;
-    // 0 = not shown, 1 = showing, 2 = finished (including a form error).
+    // 0 = not shown, 1 = showing, 2 = dismissed successfully, 3 = form error.
     private static volatile int privacyOptionsState = 0;
 
     /**
@@ -134,10 +134,11 @@ public class UMPExtension {
                     formDismissedError -> {
                         if (formDismissedError != null) {
                             Log.e(TAG, "Error showing privacy options form: " + formDismissedError.getMessage());
+                            privacyOptionsState = 3;
                         } else {
                             Log.d(TAG, "Privacy options form dismissed successfully.");
+                            privacyOptionsState = 2;
                         }
-                        privacyOptionsState = 2;
                     }
             );
         });

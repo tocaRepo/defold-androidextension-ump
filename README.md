@@ -50,7 +50,8 @@ consent form. It is false before an update succeeds and resets on each request.
 
 `ump.show_privacy_options_form()` opens the privacy options form when called from
 a user action. `ump.get_privacy_options_state()` returns `0` before the form
-is opened, `1` while it is showing, and `2` after it closes (including an error).
+is opened, `1` while it is showing, `2` after successful dismissal, and `3`
+if the form could not be shown or completed.
 A new show request resets the state to `1`.
 
 `ump.get_gdpr_applies()` reads the [IAB TCF GDPR applicability value published by UMP](https://developers.google.com/admob/android/privacy/gdpr)
