@@ -45,6 +45,8 @@ The request is asynchronous. Poll `ump.get_request_state()` until it returns `1`
 (completed) or `2` (failed). It returns `0` while the consent information
 update is running and `3` while a required form is loading or showing.
 Check `ump.can_request_ads()` only after the request reaches state `1`.
+`ump.was_consent_form_required()` reports whether this update required the normal
+consent form. It is false before an update succeeds and resets on each request.
 
 `ump.show_privacy_options_form()` opens the privacy options form when called from
 a user action. `ump.get_privacy_options_state()` returns `0` before the form

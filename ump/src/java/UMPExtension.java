@@ -18,6 +18,7 @@ public class UMPExtension {
     private static ConsentInformation consentInformation;
     // 0 = updating, 1 = update and required form completed, 2 = failed, 3 = form pending.
     private static volatile int requestState = 0;
+    private static volatile boolean requiredFormOnUpdate = false;
     // 0 = not shown, 1 = showing, 2 = finished (including a form error).
     private static volatile int privacyOptionsState = 0;
 
@@ -26,6 +27,7 @@ public class UMPExtension {
      */
     public static void requestConsentInfoUpdate(Activity activity, boolean testDevice, String testDeviceHashedId) {
         requestState = 0;
+        requiredFormOnUpdate = false;
         ConsentRequestParameters.Builder paramsBuilder = new ConsentRequestParameters.Builder();
 
         if (testDevice) {
@@ -49,6 +51,8 @@ public class UMPExtension {
                     public void onConsentInfoUpdateSuccess() {
                         Log.d(TAG, "Consent info update successful.");
                         Log.d(TAG, "Consent status: " + consentInformation.getConsentStatus());
+                        requiredFormOnUpdate = consentInformation.getConsentStatus()
+                                == ConsentInformation.ConsentStatus.REQUIRED;
                         requestState = 3;
                         loadAndShowConsentFormIfRequired(activity);
                     }
@@ -86,6 +90,10 @@ public class UMPExtension {
 
     public static int getRequestState() {
         return requestState;
+    }
+
+    public static boolean wasConsentFormRequired() {
+        return requiredFormOnUpdate;
     }
 
     // UMP writes these IAB TCF keys to default preferences after consent resolution.

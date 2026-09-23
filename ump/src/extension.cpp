@@ -182,6 +182,17 @@ static int GetRequestState(lua_State* L)
     return 1;
 }
 
+static int WasConsentFormRequired(lua_State* L)
+{
+    DM_LUA_STACK_CHECK(L, 1);
+    AttachScope attachscope;
+    JNIEnv* env = attachscope.m_Env;
+    jclass cls = GetClass(env, "com.defold.umpext.UMPExtension");
+    jmethodID method = env->GetStaticMethodID(cls, "wasConsentFormRequired", "()Z");
+    lua_pushboolean(L, env->CallStaticBooleanMethod(cls, method));
+    return 1;
+}
+
 static int GetPrivacyOptionsState(lua_State* L)
 {
     DM_LUA_STACK_CHECK(L, 1);
@@ -215,6 +226,7 @@ static const luaL_reg Module_methods[] =
     {"initialize_mobile_ads_sdk", InitializeMobileAdsSdk},
     {"get_consent_status", GetConsentStatus},  // <-- New function
     {"get_request_state", GetRequestState},
+    {"was_consent_form_required", WasConsentFormRequired},
     {"get_privacy_options_state", GetPrivacyOptionsState},
     {"get_gdpr_applies", GetGdprApplies},
     {"reset_consent_information", ResetConsentInformation},
