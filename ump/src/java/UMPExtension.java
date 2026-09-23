@@ -16,6 +16,8 @@ public class UMPExtension {
     private static ConsentInformation consentInformation;
     // 0 = updating, 1 = update and required form completed, 2 = failed, 3 = form pending.
     private static volatile int requestState = 0;
+    // 0 = not shown, 1 = showing, 2 = finished (including a form error).
+    private static volatile int privacyOptionsState = 0;
 
     /**
      * Request consent info update from UMP.
@@ -97,6 +99,7 @@ public class UMPExtension {
      * Show the privacy options form.
      */
     public static void showPrivacyOptionsForm(Activity activity) {
+        privacyOptionsState = 1;
         if (consentInformation == null) {
             consentInformation = UserMessagingPlatform.getConsentInformation(activity);
         }
@@ -110,9 +113,14 @@ public class UMPExtension {
                         } else {
                             Log.d(TAG, "Privacy options form dismissed successfully.");
                         }
+                        privacyOptionsState = 2;
                     }
             );
         });
+    }
+
+    public static int getPrivacyOptionsState() {
+        return privacyOptionsState;
     }
 
     /**

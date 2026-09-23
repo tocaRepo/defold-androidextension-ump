@@ -46,6 +46,11 @@ The request is asynchronous. Poll `ump.get_request_state()` until it returns `1`
 update is running and `3` while a required form is loading or showing.
 Check `ump.can_request_ads()` only after the request reaches state `1`.
 
+`ump.show_privacy_options_form()` opens the privacy options form when called from
+a user action. `ump.get_privacy_options_state()` returns `0` before the form
+is opened, `1` while it is showing, and `2` after it closes (including an error).
+A new show request resets the state to `1`.
+
 Note:
 More methods are available, i didn't have the time to finish writing up this readme, sorry.
 check the codebase or the example usage below.
