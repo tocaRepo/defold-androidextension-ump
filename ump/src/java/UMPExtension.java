@@ -17,6 +17,7 @@ public class UMPExtension {
     private static final String TAG = "UMPExtension";
     private static final int REQUEST_CONSENT = 1;
     private static final int PRIVACY_OPTIONS = 2;
+    private static final int CONSENT_INFO_UPDATE = 3;
     private static native void onNativeCompletion(int operation, int requestId, boolean success);
     // Keep these values in sync with the Lua constants registered in extension.cpp.
     private static final int REQUEST_STATE_UPDATING = 0;
@@ -34,6 +35,7 @@ public class UMPExtension {
     private static ConsentInformation consentInformation;
     private static volatile int requestState = REQUEST_STATE_UPDATING;
     private static volatile boolean requiredFormOnUpdate = false;
+    private static volatile boolean formStarted = false;
     private static volatile int privacyOptionsState = PRIVACY_OPTIONS_STATE_NOT_SHOWN;
     private static volatile int latestRequestId;
     private static volatile int latestPrivacyId;
@@ -41,10 +43,11 @@ public class UMPExtension {
     /**
      * Request consent info update from UMP.
      */
-    public static void requestConsentInfoUpdate(Activity activity, boolean testDevice, String testDeviceHashedId, int requestId) {
+    public static void requestConsentInfoUpdate(Activity activity, boolean testDevice, String testDeviceHashedId, int requestId, boolean deferForm) {
         latestRequestId = requestId;
         requestState = REQUEST_STATE_UPDATING;
         requiredFormOnUpdate = false;
+        formStarted = false;
         ConsentRequestParameters.Builder paramsBuilder = new ConsentRequestParameters.Builder();
 
         if (testDevice) {
@@ -72,7 +75,11 @@ public class UMPExtension {
                         requiredFormOnUpdate = consentInformation.getConsentStatus()
                                 == ConsentInformation.ConsentStatus.REQUIRED;
                         requestState = REQUEST_STATE_FORM_PENDING;
-                        loadAndShowConsentFormIfRequired(activity, requestId);
+                        if (deferForm) {
+                            onNativeCompletion(CONSENT_INFO_UPDATE, requestId, true);
+                        } else {
+                            showConsentFormIfRequired(activity, requestId);
+                        }
                     }
                 },
                 new ConsentInformation.OnConsentInfoUpdateFailureListener() {
@@ -81,7 +88,7 @@ public class UMPExtension {
                         if (requestId != latestRequestId) return;
                         Log.e(TAG, "Consent info update failed: " + formError.getMessage());
                         requestState = REQUEST_STATE_FAILED;
-                        onNativeCompletion(REQUEST_CONSENT, requestId, false);
+                        onNativeCompletion(deferForm ? CONSENT_INFO_UPDATE : REQUEST_CONSENT, requestId, false);
                     }
                 }
         );
@@ -91,9 +98,10 @@ public class UMPExtension {
      * Load and show the consent form if required.
      * Must run on the main UI thread (UMP 3.1+ requirement).
      */
-    private static void loadAndShowConsentFormIfRequired(Activity activity, int requestId) {
+    public static void showConsentFormIfRequired(Activity activity, int requestId) {
         activity.runOnUiThread(() -> {
-            if (requestId != latestRequestId) return;
+            if (requestId != latestRequestId || requestState != REQUEST_STATE_FORM_PENDING || formStarted) return;
+            formStarted = true;
             UserMessagingPlatform.loadAndShowConsentFormIfRequired(
                     activity,
                     formError -> {

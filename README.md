@@ -55,13 +55,49 @@ end
 
 Google requires `show_privacy_options_form()` to be called in response to user input. The privacy-options callback's `success` means the form was dismissed without an error; it does not describe the choices made. [Google's UMP API](https://developers.google.com/admob/android/reference/privacy/kotlin/com/google/android/ump/UserMessagingPlatform) documents both form callbacks.
 
+## Deferred form presentation
+
+To show an application privacy notice before a required UMP form, pass `true`
+as the fourth argument to `request_consent_info_update`. Its callback then runs
+when the information update finishes, before any form opens. Use
+`was_consent_form_required()` to decide whether to show the notice, and resume
+UMP only after that notice closes:
+
+```lua
+ump.request_consent_info_update(false, "", function(self, success)
+    if not success then
+        print("UMP information update failed")
+        return
+    end
+    local function resume_consent()
+        ump.show_consent_form_if_required(function(self, form_success)
+            if form_success and ump.can_request_ads() then
+                print("Ads may be requested")
+            end
+        end)
+    end
+    if ump.was_consent_form_required() then
+        -- Implement this UI function in your game. Call resume_consent after
+        -- acknowledgement and the notice's closing transition.
+        show_privacy_notice(resume_consent)
+    else
+        resume_consent()
+    end
+end, true)
+```
+
+Deferred information-update success does not complete the form step or establish
+ad eligibility. Wait for the form callback before requesting ads. Omitting
+`defer_form` preserves the automatic update-and-form flow shown above.
+
 ## Lua API
 
-Both callbacks are optional. If omitted, the state getters remain available for diagnostics, but callbacks are the intended way to know when a request or form finishes. A newer call of the same kind supersedes an earlier callback.
+Completion callbacks are optional. If omitted, the state getters remain available for diagnostics, but callbacks are the intended way to know when a request or form finishes. A newer call of the same kind supersedes an earlier callback.
 
 | Function | Result and behavior |
 | --- | --- |
-| `ump.request_consent_info_update(test_device, test_device_hashed_id, callback)` | Starts an update and shows the consent form if required. `test_device` is a boolean. `test_device_hashed_id` is a required string; pass `""` when test mode is off. With test mode on, the device hash is registered and UMP debug geography is forced to EEA. Optional `callback(self, success)` receives `false` if the update or form fails. |
+| `ump.request_consent_info_update(test_device, test_device_hashed_id, callback, defer_form)` | Starts an update and shows the consent form if required. `test_device` is a boolean. `test_device_hashed_id` is a required string; pass `""` when test mode is off. With test mode on, the device hash is registered and UMP debug geography is forced to EEA. Optional `callback(self, success)` receives `false` if the update or form fails. Optional `defer_form=true` pauses before the form and calls back after the information update instead; it defaults to `false`. |
+| `ump.show_consent_form_if_required(callback)` | Continues a successful deferred update. Call once after any application notice closes. Optional `callback(self, success)` runs after the required form closes or fails, or immediately if none is required. |
 | `ump.show_privacy_options_form(callback)` | Opens privacy options. Call from a user action after `is_privacy_options_required()` returns true. Optional `callback(self, success)` receives `false` if the form cannot be shown or completed. |
 | `ump.is_privacy_options_required()` | Returns `true` if UMP requires a privacy-options entry point. Returns `false` before consent information has been obtained. |
 | `ump.can_request_ads()` | Returns UMP's ad-request eligibility. Check it after the current request callback; it may reflect an earlier session while an update is running. |
@@ -81,7 +117,7 @@ The following numbers are exported as fields of `ump`. Request states and privac
 | Constant | Value | Meaning |
 | --- | ---: | --- |
 | `REQUEST_STATE_UPDATING` | `0` | Initial state or consent information update running. |
-| `REQUEST_STATE_FORM_PENDING` | `3` | Update succeeded; any required form is loading or showing. |
+| `REQUEST_STATE_FORM_PENDING` | `3` | Update succeeded; the form step is waiting, loading or showing. |
 | `REQUEST_STATE_COMPLETE` | `1` | Update and form step finished without a UMP error. |
 | `REQUEST_STATE_FAILED` | `2` | Update or form failed. |
 | `PRIVACY_OPTIONS_STATE_NOT_SHOWN` | `0` | Initial state. |
@@ -93,3 +129,11 @@ The following numbers are exported as fields of `ump`. Request states and privac
 | `GDPR_APPLIES_YES` | `1` | TCF value says GDPR applies. |
 
 The full Defold editor API reference is in [`ump/api/ump.script_api`](ump/api/ump.script_api).
+
+## Tests
+
+Run `python3 tests/test_consent_flow.py` with Python, Java and `javac` available.
+It runs the production Java flow with SDK test doubles and a recorded JNI
+completion callback. It checks deferred/automatic presentation, skipped forms,
+failures, repeated resumes, superseded requests and privacy-options callbacks.
+Use an Android build/device to validate the real SDK and JNI integration.

@@ -9,7 +9,7 @@
 
 #if defined(DM_PLATFORM_ANDROID)
 
-enum Operation { REQUEST_CONSENT = 1, PRIVACY_OPTIONS = 2 };
+enum Operation { REQUEST_CONSENT = 1, PRIVACY_OPTIONS = 2, CONSENT_INFO_UPDATE = 3 };
 
 struct Completion {
     int m_Operation;
@@ -24,6 +24,7 @@ static int g_NextId = 0;
 static int g_RequestId = 0;
 static int g_PrivacyId = 0;
 static dmScript::LuaCallbackInfo* g_RequestCallback = 0;
+static dmScript::LuaCallbackInfo* g_InfoCallback = 0;
 static dmScript::LuaCallbackInfo* g_PrivacyCallback = 0;
 
 extern "C" JNIEXPORT void JNICALL Java_com_defold_umpext_UMPExtension_onNativeCompletion(
@@ -60,6 +61,8 @@ static dmExtension::Result UpdateExtension(dmExtension::Params* params)
         dmScript::LuaCallbackInfo** slot = 0;
         if (completion.m_Operation == REQUEST_CONSENT && completion.m_Id == g_RequestId) {
             slot = &g_RequestCallback;
+        } else if (completion.m_Operation == CONSENT_INFO_UPDATE && completion.m_Id == g_RequestId) {
+            slot = &g_InfoCallback;
         } else if (completion.m_Operation == PRIVACY_OPTIONS && completion.m_Id == g_PrivacyId) {
             slot = &g_PrivacyCallback;
         }
@@ -138,21 +141,53 @@ static int RequestConsentInfoUpdate(lua_State* L)
     DM_LUA_STACK_CHECK(L, 0);
     const char* testDeviceId = luaL_checkstring(L, 2);
     if (!lua_isnoneornil(L, 3)) luaL_checktype(L, 3, LUA_TFUNCTION);
+    if (!lua_isnoneornil(L, 4)) luaL_checktype(L, 4, LUA_TBOOLEAN);
+    bool deferForm = lua_toboolean(L, 4);
     if (g_RequestCallback) dmScript::DestroyCallback(g_RequestCallback);
-    g_RequestCallback = lua_isnoneornil(L, 3) ? 0 : dmScript::CreateCallback(L, 3);
+    if (g_InfoCallback) dmScript::DestroyCallback(g_InfoCallback);
+    g_RequestCallback = 0;
+    g_InfoCallback = 0;
+    dmScript::LuaCallbackInfo* callback = lua_isnoneornil(L, 3) ? 0 : dmScript::CreateCallback(L, 3);
+    if (deferForm) g_InfoCallback = callback;
+    else g_RequestCallback = callback;
     g_RequestId = ++g_NextId;
     AttachScope attachscope;
     JNIEnv* env = attachscope.m_Env;
 
     jclass cls = GetClass(env, "com.defold.umpext.UMPExtension");
-    jmethodID method = env->GetStaticMethodID(cls, "requestConsentInfoUpdate", "(Landroid/app/Activity;ZLjava/lang/String;I)V");
+    jmethodID method = env->GetStaticMethodID(cls, "requestConsentInfoUpdate", "(Landroid/app/Activity;ZLjava/lang/String;IZ)V");
 
     jobject activity = dmGraphics::GetNativeAndroidActivity();
     bool testDevice = lua_toboolean(L, 1);
     jstring jtestDeviceId = env->NewStringUTF(testDeviceId);
-    env->CallStaticVoidMethod(cls, method, activity, testDevice, jtestDeviceId, g_RequestId);
+    env->CallStaticVoidMethod(cls, method, activity, testDevice, jtestDeviceId, g_RequestId, deferForm);
     env->DeleteLocalRef(jtestDeviceId);
 
+    return 0;
+}
+
+// Continue a successfully updated request after the game's privacy notice closes.
+static int ShowConsentFormIfRequired(lua_State* L)
+{
+    DM_LUA_STACK_CHECK(L, 0);
+    if (!lua_isnoneornil(L, 1)) luaL_checktype(L, 1, LUA_TFUNCTION);
+    bool formPending;
+    {
+        AttachScope attachscope;
+        JNIEnv* env = attachscope.m_Env;
+        jclass cls = GetClass(env, "com.defold.umpext.UMPExtension");
+        jmethodID method = env->GetStaticMethodID(cls, "getRequestState", "()I");
+        formPending = env->CallStaticIntMethod(cls, method) == REQUEST_STATE_FORM_PENDING;
+    }
+    if (g_InfoCallback || g_RequestCallback || !formPending) {
+        return luaL_error(L, "Consent information must finish updating before showing a form");
+    }
+    AttachScope attachscope;
+    JNIEnv* env = attachscope.m_Env;
+    jclass cls = GetClass(env, "com.defold.umpext.UMPExtension");
+    g_RequestCallback = lua_isnoneornil(L, 1) ? 0 : dmScript::CreateCallback(L, 1);
+    jmethodID method = env->GetStaticMethodID(cls, "showConsentFormIfRequired", "(Landroid/app/Activity;I)V");
+    env->CallStaticVoidMethod(cls, method, dmGraphics::GetNativeAndroidActivity(), g_RequestId);
     return 0;
 }
 
@@ -324,6 +359,7 @@ static int GetPurposeConsents(lua_State* L)
 static const luaL_reg Module_methods[] =
 {
     {"request_consent_info_update", RequestConsentInfoUpdate},
+    {"show_consent_form_if_required", ShowConsentFormIfRequired},
     {"show_privacy_options_form", ShowPrivacyOptionsForm},
     {"is_privacy_options_required", IsPrivacyOptionsRequired},
     {"can_request_ads", CanRequestAds},
@@ -394,8 +430,10 @@ static dmExtension::Result FinalizeExtension(dmExtension::Params* params)
         g_Completions.SetSize(0);
     }
     if (g_RequestCallback) dmScript::DestroyCallback(g_RequestCallback);
+    if (g_InfoCallback) dmScript::DestroyCallback(g_InfoCallback);
     if (g_PrivacyCallback) dmScript::DestroyCallback(g_PrivacyCallback);
     g_RequestCallback = 0;
+    g_InfoCallback = 0;
     g_PrivacyCallback = 0;
     return dmExtension::RESULT_OK;
 }

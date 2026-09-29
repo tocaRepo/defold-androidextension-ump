@@ -7,8 +7,10 @@
       desc: |-
         Request fresh consent information and show a consent form if required.
         Call on every launch. The callback runs on the Defold update thread after
-        the update and any required form finish. A successful callback means the
-        flow had no UMP error, not that the user accepted personalized ads.
+        the update and any required form finish unless defer_form is true. In
+        deferred mode the callback runs after the information update, before any
+        form opens; call show_consent_form_if_required to finish the flow.
+        A successful callback means no UMP error, not consent to personalized ads.
       parameters:
         - name: test_device
           type: boolean
@@ -27,6 +29,10 @@
             - name: success
               type: boolean
               desc: False if the consent information update or form failed.
+        - name: defer_form
+          type: boolean
+          optional: true
+          desc: Pause after the information update so an application notice can precede a required form. Defaults to false.
       examples:
         - desc: |-
             ```lua
@@ -36,6 +42,27 @@
                 end
             end)
             ```
+
+    - name: show_consent_form_if_required
+      type: function
+      desc: |-
+        Continue a successful deferred consent-information update. Check
+        was_consent_form_required() to decide whether to show an application
+        notice first. Call only once, after that notice has closed. The callback
+        runs after the required form closes or fails, or immediately if no form
+        is required. Advertising must wait for this callback.
+      parameters:
+        - name: callback
+          type: function
+          optional: true
+          desc: Called when the form step finishes.
+          parameters:
+            - name: self
+              type: object
+              desc: Calling script instance.
+            - name: success
+              type: boolean
+              desc: False if the form could not be loaded or shown.
 
     - name: show_privacy_options_form
       type: function
@@ -170,7 +197,7 @@
       desc: "2; information update or form failed."
     - name: REQUEST_STATE_FORM_PENDING
       type: number
-      desc: "3; update succeeded and a form step is in progress."
+      desc: "3; update succeeded and the form step is waiting or in progress."
     - name: PRIVACY_OPTIONS_STATE_NOT_SHOWN
       type: number
       desc: "0; initial privacy-options state."
