@@ -126,7 +126,7 @@ nodes {
     y: 100.0
   }
   type: TYPE_TEXT
-  text: "RESET"
+  text: "OPTIONS"
   font: "cool"
   id: "java1"
   shadow {
